@@ -5,23 +5,12 @@ let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
 
-//Function to check if the user exists
-const doesExist = (username)=>{
-    let userswithsamename = users.filter((user)=>{
-      return user.username === username
-    });
-    if(userswithsamename.length > 0){
-      return true;
-    } else {
-      return false;
-    }
-}
-
+// register a new user
 public_users.post("/register", (req,res) => {
     const username = req.body.username;
     const password = req.body.password;
     if (username && password) {
-      if (!doesExist(username)) { 
+      if (!isValid(username)) { 
         users.push({"username":username,"password":password});
         return res.status(200).json({message: "User successfully registred. Now you can login"});
       } else {
@@ -39,8 +28,9 @@ public_users.get('/',function (req, res) {
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
     const isbn = req.params.isbn;
-    let filtered_isbn = Object.values(books).filter((book) => book.isbn === isbn); //no ISBN in booksdb
-    if(!Object.keys(filtered_isbn).length === 0) {
+    let filtered_isbn = Object.values(books).filter((book) => book.isbn === isbn);
+    if(filtered_isbn) {
+        console.log(filtered_isbn);
         return res.send(JSON.stringify(filtered_isbn));
     } 
     else {
@@ -75,7 +65,7 @@ public_users.get('/title/:title',function (req, res) {
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
     const isbn = req.params.isbn;
-    let filtered_isbn = Object.values(books).filter((book) => book.isbn === isbn); // NO ISBN in booksdb
+    let filtered_isbn = Object.values(books).filter((book) => book.isbn === isbn);
     if(!Object.keys(filtered_isbn).length === 0) {
         return res.send(filtered_isbn.reviews);
     } 
