@@ -51,7 +51,40 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
+    console.log("hiiii");
+    const isbn = req.params.isbn;
+    const { review } = req.body;
+    const username = req.session.username;
   
+    if (!username) {
+      res.status(401).json({ error: "User not logged in." });
+      return;
+    }
+  
+    if (!review) {
+      res.status(400).json({ error: "Review is required." });
+      return;
+    }
+  
+    if (!books[isbn]) {
+      res.status(404).json({ error: "Book not found." });
+      return;
+    }
+  
+    const reviewObject = {
+      username: username,
+      review: review
+    };
+  
+    if (!books[isbn].reviews[username]) {
+      // If the user hasn't posted a review for this book before, create a new review entry
+      books[isbn].reviews[username] = reviewObject;
+      res.status(201).json({ message: "Review posted successfully." });
+    } else {
+      // If the user has already posted a review for this book, update their existing review
+      books[isbn].reviews[username] = reviewObject;
+      res.status(200).json({ message: "Review updated successfully." });
+    }
 });
 
 module.exports.authenticated = regd_users;
