@@ -51,10 +51,10 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-    console.log("hiiii");
     const isbn = req.params.isbn;
     const { review } = req.body;
-    const username = req.session.username;
+    const username = req.session.authorization.username;
+    console.log(review);
   
     if (!username) {
       res.status(401).json({ error: "User not logged in." });
@@ -65,26 +65,25 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
       res.status(400).json({ error: "Review is required." });
       return;
     }
-  
-    if (!books[isbn]) {
-      res.status(404).json({ error: "Book not found." });
-      return;
+
+    let keys = Object.keys(books);
+    for(let i=1; i<=keys.length; i++) {
+        if (isbn === books[i].isbn) {
+            if(books[i].reviews.username === username) {
+                books[i].reviews = {username, review};
+                res.status(201).json({ message: "Review posted successfully." });
+            } else {
+                Object.assign(books[i],{reviews:{"username":username, "review":review}});
+                res.status(201).json({ message: "Review posted successfully." });                
+            }
+        }
     }
-  
-    const reviewObject = {
-      username: username,
-      review: review
-    };
-  
-    if (!books[isbn].reviews[username]) {
-      // If the user hasn't posted a review for this book before, create a new review entry
-      books[isbn].reviews[username] = reviewObject;
-      res.status(201).json({ message: "Review posted successfully." });
-    } else {
-      // If the user has already posted a review for this book, update their existing review
-      books[isbn].reviews[username] = reviewObject;
-      res.status(200).json({ message: "Review updated successfully." });
-    }
+    res.status(404).json({error: "Book not found"});  
+});
+
+// Delete a review for a particular user
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    
 });
 
 module.exports.authenticated = regd_users;
